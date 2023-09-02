@@ -3,6 +3,7 @@
 #' viraltab trains and optimizes a series of regression models for viral load
 #' or cd4 counts
 #'
+#' @import dplyr
 #' @import earth
 #' @import nnet
 #' @import parsnip
@@ -88,5 +89,6 @@ viraltab <- function(x, semilla, target, pliegues, repeticiones, rejilla) {
       )
     ) |>
     workflowsets::rank_results() |>
-    as.data.frame()
+    as.data.frame() |>
+    dplyr::mutate_if(is.numeric, round, digits = 2)
 }

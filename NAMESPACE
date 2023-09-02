@@ -3,6 +3,7 @@
 export(viralmodel)
 export(viraltab)
 export(viralvis)
+import(dplyr)
 import(earth)
 import(nnet)
 import(parsnip)
