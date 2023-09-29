@@ -1,14 +1,5 @@
 test_that("viraltab() works", {
-  wflow_id <- c("normalized_neural_network", "normalized_neural_network", "simple_neural_network", "simple_neural_network", "simple_MARS", "simple_MARS", "normalized_MARS", "normalized_MARS")
-  .config <- c("Preprocessor1_Model1", "Preprocessor1_Model1", "Preprocessor1_Model1", "Preprocessor1_Model1", "Preprocessor1_Model1", "Preprocessor1_Model1", "Preprocessor1_Model1", "Preprocessor1_Model1")
-  .metric <- c("rmse", "rsq", "rmse", "rsq")
-  mean <- c(226.00, 0.37, 237.28, 0.28, 450.12, 0.45, 450.12, 0.45)
-  std_err <- c(66.87, 0.24, 65.47, 0.28, 256.42, 0.01, 256.42, 0.01)
-  n <- c(2, 2, 2, 2, 2, 2, 2, 2)
-  preprocessor <- c("recipe", "recipe", "workflow_variables", "workflow_variables", "workflow_variables", "workflow_variables", "recipe", "recipe")
-  model <- c("mlp", "mlp", "mlp", "mlp", "mars", "mars", "mars", "mars")
-  rank <- c(1, 1, 2, 2, 3, 3, 4, 4)
-  y <- data.frame(wflow_id, .config, .metric, mean, std_err, n, preprocessor, model, rank)
+
   cd_2019 <- c(824, 169, 342, 423, 441, 507, 559,
                173, 764, 780, 244, 527, 417, 800,
                602, 494, 345, 780, 780, 527, 556,
@@ -45,5 +36,5 @@ test_that("viraltab() works", {
   pliegues <- 2
   repeticiones <- 1
   rejilla <- 1
-  expect_equal(viraltab(x, semilla, target, pliegues, repeticiones, rejilla), y)
+  expect_snapshot(print(viraltab(x, semilla, target, pliegues, repeticiones, rejilla)))
 })

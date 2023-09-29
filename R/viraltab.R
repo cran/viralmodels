@@ -5,6 +5,7 @@
 #'
 #' @import dplyr
 #' @import earth
+#' @import kernlab
 #' @import nnet
 #' @import parsnip
 #' @import recipes
@@ -68,12 +69,19 @@ viraltab <- function(x, semilla, target, pliegues, repeticiones, rejilla) {
   workflowsets::workflow_set(
     preproc = list( simple = workflows::workflow_variables(outcomes = tidyselect::all_of(target), predictors = tidyselect::everything()),
                     normalized = recipes::recipe(stats::as.formula(paste(target,"~ .")), data = x) |>
-                      recipes::step_normalize(recipes::all_predictors())),
+                      recipes::step_normalize(recipes::all_predictors()),
+                    full_quad = recipes::recipe(stats::as.formula(paste(target,"~ .")), data = x) |>
+                      recipes::step_normalize(recipes::all_predictors()) |>
+                      recipes::step_poly(recipes::all_predictors()) |>
+                      recipes::step_interact(~ all_predictors():all_predictors())),
     models = list(MARS = parsnip::mars(prod_degree = parsnip::tune(), num_terms = parsnip::tune(), prune_method = parsnip::tune()) |>
                     parsnip::set_engine("earth") |>
                     parsnip::set_mode("regression"),
                   neural_network = parsnip::mlp(hidden_units = parsnip::tune(), penalty = parsnip::tune(), epochs = parsnip::tune()) |>
                     parsnip::set_engine("nnet", MaxNWts = 2600) |>
+                    parsnip::set_mode("regression"),
+                  svm_r = parsnip::svm_rbf(cost = parsnip::tune(), rbf_sigma = parsnip::tune(), margin = parsnip::tune()) |>
+                    parsnip::set_engine("kernlab") |>
                     parsnip::set_mode("regression"))
   ) |>
     workflowsets::workflow_map(

@@ -1,9 +1,5 @@
 test_that("viralmodel() works", {
-  num_terms <- c(3)
-  prod_degree <- c(1)
-  prune_method <- c("none")
-  .config <- c("Preprocessor1_Model1")
-  y <- data.frame(num_terms, prod_degree, prune_method, .config)
+
   cd_2019 <- c(824, 169, 342, 423, 441, 507, 559,
                173, 764, 780, 244, 527, 417, 800,
                602, 494, 345, 780, 780, 527, 556,
@@ -41,5 +37,5 @@ test_that("viralmodel() works", {
   repeticiones <- 1
   rejilla <- 1
   modelo <- "simple_MARS"
-  expect_equal(viralmodel(x, semilla, target, pliegues, repeticiones, rejilla, modelo), y)
+  expect_snapshot(print(viralmodel(x, semilla, target, pliegues, repeticiones, rejilla, modelo)))
 })
