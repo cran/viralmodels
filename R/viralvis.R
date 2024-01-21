@@ -79,8 +79,8 @@ viralvis <- function(x, semilla, target, pliegues, repeticiones, rejilla) {
                   neural_network = parsnip::mlp(hidden_units = parsnip::tune(), penalty = parsnip::tune(), epochs = parsnip::tune()) |>
                     parsnip::set_engine("nnet", MaxNWts = 2600) |>
                     parsnip::set_mode("regression"),
-                  svm_r = parsnip::svm_rbf(cost = parsnip::tune(), rbf_sigma = parsnip::tune(), margin = parsnip::tune()) |>
-                    parsnip::set_engine("kernlab") |>
+                  KNN = parsnip::nearest_neighbor(neighbors = parsnip::tune(), dist_power = parsnip::tune(), weight_func = parsnip::tune()) |>
+                    parsnip::set_engine("kknn") |>
                     parsnip::set_mode("regression"))
   ) |>
     workflowsets::workflow_map(
