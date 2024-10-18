@@ -1,44 +1,47 @@
 # viraltab() works
 
     Code
-      print(viraltab(x, semilla, target, pliegues, repeticiones, rejilla))
+      print(viraltab(traindata, semilla, target, viralvars, logbase, pliegues,
+        repeticiones, rejilla))
+    Message
+      i Creating pre-processing data to finalize unknown parameter: mtry
     Output
                           wflow_id              .config .metric   mean std_err n
-      1            normalized_MARS Preprocessor1_Model1    rmse 191.14   10.86 2
-      2            normalized_MARS Preprocessor1_Model1     rsq   0.46    0.08 2
-      3                simple_MARS Preprocessor1_Model1    rmse 191.14   10.86 2
-      4                simple_MARS Preprocessor1_Model1     rsq   0.46    0.08 2
-      5  normalized_neural_network Preprocessor1_Model1    rmse 227.01   48.46 2
-      6  normalized_neural_network Preprocessor1_Model1     rsq   0.26    0.13 2
-      7      simple_neural_network Preprocessor1_Model1    rmse 241.93   57.78 2
-      8      simple_neural_network Preprocessor1_Model1     rsq   0.32    0.27 2
-      9            full_quad_svm_r Preprocessor1_Model1    rmse 243.65    2.32 2
-      10           full_quad_svm_r Preprocessor1_Model1     rsq   0.27    0.01 2
-      11              simple_svm_r Preprocessor1_Model1    rmse 243.65    2.32 2
-      12              simple_svm_r Preprocessor1_Model1     rsq   0.55    0.03 2
-      13          normalized_svm_r Preprocessor1_Model1    rmse 243.65    2.32 2
-      14          normalized_svm_r Preprocessor1_Model1     rsq   0.55    0.03 2
-      15            full_quad_MARS Preprocessor1_Model1    rmse 254.28   78.51 2
-      16            full_quad_MARS Preprocessor1_Model1     rsq   0.34    0.15 2
-      17  full_quad_neural_network Preprocessor1_Model1    rmse 503.87  317.21 2
-      18  full_quad_neural_network Preprocessor1_Model1     rsq   0.17    0.16 2
-               preprocessor   model rank
-      1              recipe    mars    1
-      2              recipe    mars    1
-      3  workflow_variables    mars    2
-      4  workflow_variables    mars    2
-      5              recipe     mlp    3
-      6              recipe     mlp    3
-      7  workflow_variables     mlp    4
-      8  workflow_variables     mlp    4
-      9              recipe svm_rbf    5
-      10             recipe svm_rbf    5
-      11 workflow_variables svm_rbf    6
-      12 workflow_variables svm_rbf    6
-      13             recipe svm_rbf    7
-      14             recipe svm_rbf    7
-      15             recipe    mars    8
-      16             recipe    mars    8
-      17             recipe     mlp    9
-      18             recipe     mlp    9
+      1                  simple_rf Preprocessor1_Model1    rmse 113.35    0.91 2
+      2                  simple_rf Preprocessor1_Model1     rsq   0.79    0.05 2
+      3         simple_CART_bagged Preprocessor1_Model1    rmse 117.26    2.16 2
+      4         simple_CART_bagged Preprocessor1_Model1     rsq   0.77    0.05 2
+      5             normalized_KNN Preprocessor1_Model1    rmse 127.32    6.92 2
+      6             normalized_KNN Preprocessor1_Model1     rsq   0.72    0.00 2
+      7              full_quad_KNN Preprocessor1_Model1    rmse 149.64    5.18 2
+      8              full_quad_KNN Preprocessor1_Model1     rsq   0.67    0.03 2
+      9  normalized_neural_network Preprocessor1_Model1    rmse 157.17   17.18 2
+      10 normalized_neural_network Preprocessor1_Model1     rsq   0.65    0.07 2
+      11       normalized_SVM_poly Preprocessor1_Model1    rmse 166.73   15.43 2
+      12       normalized_SVM_poly Preprocessor1_Model1     rsq   0.69    0.01 2
+      13             simple_Cubist Preprocessor1_Model1    rmse 179.49   26.23 2
+      14             simple_Cubist Preprocessor1_Model1     rsq   0.68    0.01 2
+      15     normalized_SVM_radial Preprocessor1_Model1    rmse 233.47    2.09 2
+      16     normalized_SVM_radial Preprocessor1_Model1     rsq   0.65    0.00 2
+      17      full_quad_linear_reg Preprocessor1_Model1    rmse 984.45  822.60 2
+      18      full_quad_linear_reg Preprocessor1_Model1     rsq   0.27    0.25 2
+               preprocessor            model rank
+      1  workflow_variables      rand_forest    1
+      2  workflow_variables      rand_forest    1
+      3  workflow_variables         bag_tree    2
+      4  workflow_variables         bag_tree    2
+      5              recipe nearest_neighbor    3
+      6              recipe nearest_neighbor    3
+      7              recipe nearest_neighbor    4
+      8              recipe nearest_neighbor    4
+      9              recipe              mlp    5
+      10             recipe              mlp    5
+      11             recipe         svm_poly    6
+      12             recipe         svm_poly    6
+      13 workflow_variables     cubist_rules    7
+      14 workflow_variables     cubist_rules    7
+      15             recipe          svm_rbf    8
+      16             recipe          svm_rbf    8
+      17             recipe       linear_reg    9
+      18             recipe       linear_reg    9
 

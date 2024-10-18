@@ -1,14 +1,12 @@
 #' Select best model
 #'
-#' viralmodel returns metrics for a selected model
+#' Returns performance metrics for a selected model
 #'
-#' @import earth
-#' @import nnet
-#' @importFrom stats as.formula
-#'
-#' @param x A data frame
+#' @param traindata A data frame
 #' @param semilla A numeric value
 #' @param target A character value
+#' @param viralvars Vector of variable names related to viral data.
+#' @param logbase The base for logarithmic transformations.
 #' @param pliegues A numeric value
 #' @param repeticiones A numeric value
 #' @param rejilla A numeric value
@@ -18,70 +16,94 @@
 #' @export
 #'
 #' @examples
-#' cd_2019 <- c(824, 169, 342, 423, 441, 507, 559,
-#'              173, 764, 780, 244, 527, 417, 800,
-#'              602, 494, 345, 780, 780, 527, 556,
-#'              559, 238, 288, 244, 353, 169, 556,
-#'              824, 169, 342, 423, 441, 507, 559)
-#' vl_2019 <- c(40, 11388, 38961, 40, 75, 4095, 103,
-#'              11388, 46, 103, 11388, 40, 0, 11388,
-#'              0,   4095,   40,  93,  49,  49,  49,
-#'              4095,  6837, 38961, 38961, 0, 0, 93,
-#'              40, 11388, 38961, 40, 75, 4095, 103)
-#' cd_2021 <- c(992, 275, 331, 454, 479, 553,  496,
-#'              230, 605, 432, 170, 670, 238,  238,
-#'              634, 422, 429, 513, 327, 465,  479,
-#'              661, 382, 364, 109, 398, 209, 1960,
-#'              992, 275, 331, 454, 479, 553,  496)
-#' vl_2021 <- c(80, 1690,  5113,  71,  289,  3063,  0,
-#'              262,  0,  15089,  13016, 1513, 60, 60,
-#'              49248, 159308, 56, 0, 516675, 49, 237,
-#'              84,  292,  414, 26176,  62,  126,  93,
-#'              80, 1690, 5113,    71, 289, 3063,   0)
-#' cd_2022 <- c(700, 127, 127, 547, 547, 547, 777,
-#'              149, 628, 614, 253, 918, 326, 326,
-#'              574, 361, 253, 726, 659, 596, 427,
-#'              447, 326, 253, 248, 326, 260, 918,
-#'              700, 127, 127, 547, 547, 547, 777)
-#' vl_2022 <- c(0,   0,   53250,   0,   40,   1901, 0,
-#'              955,    0,    0,    0,   0,   40,   0,
-#'              49248, 159308, 56, 0, 516675, 49, 237,
-#'              0,    23601,   0,   40,   0,   0,   0,
-#'              0,    0,     0,     0,    0,    0,  0)
-#' x <- cbind(cd_2019, vl_2019, cd_2021, vl_2021, cd_2022, vl_2022) |> as.data.frame()
-#' semilla <- 123
+#' \donttest{
+#' library(tidyverse)
+#' library(baguette)
+#' library(kernlab)
+#' library(kknn)
+#' library(ranger)
+#' library(rules)
+#' library(glmnet)
+#' # Define the function to impute values in the undetectable range
+#' set.seed(123)
+#' impute_undetectable <- function(column) {
+#' ifelse(column <= 40,
+#'       rexp(sum(column <= 40), rate = 1/13) + 1,
+#'             column)
+#'             }
+#' # Apply the function to all vl columns using purrr's map_dfc
+#' library(viraldomain)
+#' data("viral", package = "viraldomain")
+#' viral_imputed <- viral |>
+#' mutate(across(starts_with("vl"), ~impute_undetectable(.x)))
+#' traindata <- viral_imputed
+#' semilla <- 1501
 #' target <- "cd_2022"
+#' viralvars <- c("vl_2019", "vl_2021", "vl_2022")
+#' logbase <- 10
 #' pliegues <- 2
 #' repeticiones <- 1
 #' rejilla <- 1
-#' modelo <- "simple_MARS"
-#' viralmodel(x, semilla, target, pliegues, repeticiones, rejilla, modelo)
-viralmodel<- function(x, semilla, target, pliegues, repeticiones, rejilla, modelo) {
-  set.seed(semilla)
-  workflowsets::workflow_set(
-    preproc = list( simple = workflows::workflow_variables(outcomes = tidyselect::all_of(target), predictors = tidyselect::everything()),
-                    normalized = recipes::recipe(stats::as.formula(paste(target,"~ .")), data = x) |>
-                      recipes::step_normalize(recipes::all_predictors()),
-                    full_quad = recipes::recipe(stats::as.formula(paste(target,"~ .")), data = x) |>
-                      recipes::step_normalize(recipes::all_predictors()) |>
-                      recipes::step_poly(recipes::all_predictors()) |>
-                      recipes::step_interact(~ all_predictors():all_predictors())),
-    models = list(MARS = parsnip::mars(prod_degree = parsnip::tune(), num_terms = parsnip::tune(), prune_method = parsnip::tune()) |>
-                    parsnip::set_engine("earth") |>
-                    parsnip::set_mode("regression"),
-                  neural_network = parsnip::mlp(hidden_units = parsnip::tune(), penalty = parsnip::tune(), epochs = parsnip::tune()) |>
-                    parsnip::set_engine("nnet", MaxNWts = 2600) |>
-                    parsnip::set_mode("regression"),
-                  KNN = parsnip::nearest_neighbor(neighbors = parsnip::tune(), dist_power = parsnip::tune(), weight_func = parsnip::tune()) |>
-                    parsnip::set_engine("kknn") |>
-                    parsnip::set_mode("regression")),
-
+#' modelo <- "simple_rf"
+#' set.seed(123)
+#' viralmodel(traindata, semilla, target, viralvars, logbase, pliegues, repeticiones, rejilla, modelo)
+#' }
+viralmodel <- function(traindata, semilla, target, viralvars, logbase, pliegues, repeticiones, rejilla, modelo) {
+  dplyr::bind_rows(
+    workflowsets::workflow_set(
+      preproc = list(simple = workflows::workflow_variables(outcomes = tidyselect::all_of(target), predictors = tidyselect::everything())),
+      models = list(rf = parsnip::rand_forest(mtry = hardhat::tune(), min_n = hardhat::tune(), trees = hardhat::tune()) |>
+                      parsnip::set_engine("ranger") |>
+                      parsnip::set_mode("regression"),
+                    CART_bagged = parsnip::bag_tree() |>
+                      parsnip::set_engine("rpart", times = 50L) |>
+                      parsnip::set_mode("regression"),
+                    Cubist = parsnip::cubist_rules(committees = hardhat::tune(), neighbors = hardhat::tune()) |>
+                      parsnip::set_engine("Cubist")
+      )
+    ),
+    workflowsets::workflow_set(
+      preproc = list(normalized = recipes::recipe(stats::as.formula(paste(target, "~ .")), data = traindata) |>
+                       recipes::step_log(tidyselect::all_of(viralvars), base = logbase) |>
+                       recipes::step_normalize(recipes::all_predictors())),
+      models = list(SVM_radial = parsnip::svm_rbf(cost = hardhat::tune(), rbf_sigma = hardhat::tune()) |>
+                      parsnip::set_engine("kernlab") |>
+                      parsnip::set_mode("regression"),
+                    SVM_poly = parsnip::svm_poly(cost = hardhat::tune(), degree = hardhat::tune()) |>
+                      parsnip::set_engine("kernlab") |>
+                      parsnip::set_mode("regression"),
+                    KNN = parsnip::nearest_neighbor(neighbors = hardhat::tune(), dist_power = hardhat::tune(), weight_func = hardhat::tune()) |>
+                      parsnip::set_engine("kknn") |>
+                      parsnip::set_mode("regression"),
+                    neural_network = parsnip::mlp(hidden_units = hardhat::tune(), penalty = hardhat::tune(), epochs = hardhat::tune()) |>
+                      parsnip::set_engine("nnet", MaxNWts = 2600) |>
+                      parsnip::set_mode("regression")
+      )
+    ) |>
+      workflowsets::option_add(param_info = parsnip::mlp(hidden_units = hardhat::tune(), penalty = hardhat::tune(), epochs = hardhat::tune()) |>
+                                 parsnip::set_engine("nnet", MaxNWts = 2600) |>
+                                 parsnip::set_mode("regression") |>
+                                 tune::extract_parameter_set_dials() |>
+                                 recipes::update(hidden_units = dials::hidden_units(c(1, 27))),
+                               id = "normalized_neural_network"),
+    workflowsets::workflow_set(
+      preproc = list(full_quad = recipes::recipe(stats::as.formula(paste(target, "~ .")), data = traindata) |>
+                       recipes::step_log(tidyselect::all_of(viralvars), base = logbase) |>
+                       recipes::step_normalize(recipes::all_predictors())  |>
+                       recipes::step_poly(recipes::all_predictors()) |>
+                       recipes::step_interact(~ recipes::all_predictors():recipes::all_predictors())
+      ),
+      models = list(linear_reg = parsnip::linear_reg(penalty = hardhat::tune(), mixture = hardhat::tune()) |>
+                      parsnip::set_engine("glmnet"),
+                    KNN = parsnip::nearest_neighbor(neighbors = hardhat::tune(), dist_power = hardhat::tune(), weight_func = hardhat::tune()) |>
+                      parsnip::set_engine("kknn") |>
+                      parsnip::set_mode("regression")
+      )
+    )
   ) |>
     workflowsets::workflow_map(
       seed = semilla,
-      resamples = rsample::initial_split(x) |>
-        rsample::training() |>
-        rsample::vfold_cv(v = pliegues, repeats = repeticiones),
+      resamples = rsample::vfold_cv(traindata, v = pliegues, repeats = repeticiones),
       grid = rejilla,
       control = tune::control_grid(
         save_pred = TRUE,
