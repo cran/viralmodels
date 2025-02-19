@@ -12,7 +12,8 @@ viraltab(
   logbase,
   pliegues,
   repeticiones,
-  rejilla
+  rejilla,
+  rank_output = TRUE
 )
 }
 \arguments{
@@ -31,6 +32,8 @@ viraltab(
 \item{repeticiones}{A numeric value}
 
 \item{rejilla}{A numeric value}
+
+\item{rank_output}{Logical value. If TRUE, returns ranked output; if FALSE, returns unranked output.}
 }
 \value{
 A table of competing models
@@ -41,6 +44,7 @@ counts
 }
 \examples{
 \donttest{
+library(tidyverse)
 library(dplyr)
 library(baguette)
 library(kernlab)
@@ -57,7 +61,7 @@ ifelse(column <= 40,
             }
 library(viraldomain)
 data("viral", package = "viraldomain")
-viral_imputed <- viral |>
+viral_imputed <- viral \%>\%
 mutate(across(starts_with("vl"), ~impute_undetectable(.x)))
 traindata <- viral_imputed
 semilla <- 1501
@@ -68,6 +72,7 @@ pliegues <- 2
 repeticiones <- 1
 rejilla <- 1
 set.seed(123)
-viraltab(traindata, semilla, target, viralvars, logbase, pliegues, repeticiones, rejilla)
+viraltab(traindata, semilla, target, viralvars, logbase, pliegues, 
+repeticiones, rejilla, rank_output = TRUE)
 }
 }
