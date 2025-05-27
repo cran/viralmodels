@@ -4,34 +4,10 @@
 \alias{viralmodel}
 \title{Select best model}
 \usage{
-viralmodel(
-  traindata,
-  semilla,
-  target,
-  viralvars,
-  logbase,
-  pliegues,
-  repeticiones,
-  rejilla,
-  modelo
-)
+viralmodel(output, modelo)
 }
 \arguments{
-\item{traindata}{A data frame}
-
-\item{semilla}{A numeric value}
-
-\item{target}{A character value}
-
-\item{viralvars}{Vector of variable names related to viral data.}
-
-\item{logbase}{The base for logarithmic transformations.}
-
-\item{pliegues}{A numeric value}
-
-\item{repeticiones}{A numeric value}
-
-\item{rejilla}{A numeric value}
+\item{output}{A non-ranked viraltab output}
 
 \item{modelo}{A character value}
 }
@@ -43,7 +19,8 @@ Returns performance metrics for a selected model
 }
 \examples{
 \donttest{
-library(tidyverse)
+library(dplyr)
+library(magrittr)
 library(baguette)
 library(kernlab)
 library(kknn)
@@ -72,6 +49,7 @@ repeticiones <- 1
 rejilla <- 1
 modelo <- "simple_rf"
 set.seed(123)
-viralmodel(traindata, semilla, target, viralvars, logbase, pliegues, repeticiones, rejilla, modelo)
+viraltab(traindata, semilla, target, viralvars, logbase, pliegues, 
+repeticiones, rejilla, rank_output = FALSE) \%>\% viralmodel(modelo) 
 }
 }

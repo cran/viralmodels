@@ -4,24 +4,10 @@
 \alias{viralpreds}
 \title{Predict Viral Load or CD4 Count using Many Models}
 \usage{
-viralpreds(
-  target,
-  pliegues,
-  repeticiones,
-  rejilla,
-  semilla,
-  data,
-  prediction_type = "full"
-)
+viralpreds(output, semilla, data, prediction_type = "full")
 }
 \arguments{
-\item{target}{A character string specifying the column name of the target variable to predict.}
-
-\item{pliegues}{An integer specifying the number of folds for cross-validation.}
-
-\item{repeticiones}{An integer specifying the number of times the cross-validation should be repeated.}
-
-\item{rejilla}{An integer specifying the number of grid search iterations for tuning hyperparameters.}
+\item{output}{A non-ranked viraltab output}
 
 \item{semilla}{An integer specifying the seed for random number generation to ensure reproducibility.}
 
@@ -42,7 +28,8 @@ It allows users to specify two types of predictions: normal predictions on the f
 }
 \examples{
 \donttest{
-library(tidyverse)
+library(dplyr)
+library(magrittr)
 library(baguette)
 library(kernlab)
 library(kknn)
@@ -69,6 +56,8 @@ pliegues <- 5
 repeticiones <- 2
 rejilla <- 2
 semilla <- 123
-viralpreds(target, pliegues, repeticiones, rejilla, semilla, traindata)
+viraltab(traindata, semilla, target, viralvars, logbase, pliegues, 
+repeticiones, rejilla, rank_output = FALSE) \%>\% 
+viralpreds(semilla, traindata, prediction_type = "full")
 }
 }

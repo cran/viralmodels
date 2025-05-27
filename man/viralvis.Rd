@@ -4,33 +4,10 @@
 \alias{viralvis}
 \title{Competing models plot}
 \usage{
-viralvis(
-  traindata,
-  semilla,
-  target,
-  viralvars,
-  logbase,
-  pliegues,
-  repeticiones,
-  rejilla
-)
+viralvis(output)
 }
 \arguments{
-\item{traindata}{A data frame}
-
-\item{semilla}{A numeric value}
-
-\item{target}{A character value}
-
-\item{viralvars}{Vector of variable names related to viral data.}
-
-\item{logbase}{The base for logarithmic transformations.}
-
-\item{pliegues}{A numeric value}
-
-\item{repeticiones}{A numeric value}
-
-\item{rejilla}{A numeric value}
+\item{output}{A non-ranked viraltab output}
 }
 \value{
 A plot of ranking models
@@ -41,7 +18,8 @@ counts
 }
 \examples{
 \donttest{
-library(tidyverse)
+library(dplyr)
+library(magrittr)
 library(baguette)
 library(kernlab)
 library(kknn)
@@ -69,6 +47,7 @@ pliegues <- 2
 repeticiones <- 1
 rejilla <- 1
 set.seed(123)
-viralvis(traindata, semilla, target, viralvars, logbase, pliegues, repeticiones, rejilla)
+viraltab(traindata, semilla, target, viralvars, logbase, pliegues, 
+repeticiones, rejilla, rank_output = FALSE) \%>\% viralvis() 
 }
 }

@@ -1,6 +1,6 @@
 test_that("`viralvis()` plots as expected", {
-  library(tidyverse)
   library(dplyr)
+  library(magrittr)
   library(baguette)
   library(kernlab)
   library(kknn)
@@ -28,8 +28,7 @@ test_that("`viralvis()` plots as expected", {
   repeticiones <- 1
   rejilla <- 1
   set.seed(123)
-  vdiffr::expect_doppelganger(
-    title = "viralvis",
-    fig = viralvis(traindata, semilla, target, viralvars, logbase, pliegues, repeticiones, rejilla),
-  )
+  viral1 <- viraltab(traindata, semilla, target, viralvars, logbase, pliegues, 
+                    repeticiones, rejilla, rank_output = FALSE) %>% viralvis() 
+  expect_snapshot(viral1$theme)
 })

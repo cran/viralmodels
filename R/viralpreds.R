@@ -4,11 +4,9 @@
 #' It allows users to specify two types of predictions: normal predictions on the full dataset or observation-by-observation 
 #' (obs-by-obs) predictions.
 #'
+#' @importFrom dplyr %>%
 #'
-#' @param target A character string specifying the column name of the target variable to predict.
-#' @param pliegues An integer specifying the number of folds for cross-validation.
-#' @param repeticiones An integer specifying the number of times the cross-validation should be repeated.
-#' @param rejilla An integer specifying the number of grid search iterations for tuning hyperparameters.
+#' @param output A non-ranked viraltab output
 #' @param semilla An integer specifying the seed for random number generation to ensure reproducibility.
 #' @param data A data frame containing the predictors and the target variable.
 #' @param prediction_type A character string specifying the type of predictions to perform. 
@@ -21,7 +19,8 @@
 #'
 #' @examples
 #' \donttest{
-#' library(tidyverse)
+#' library(dplyr)
+#' library(magrittr)
 #' library(baguette)
 #' library(kernlab)
 #' library(kknn)
@@ -48,61 +47,85 @@
 #' repeticiones <- 2
 #' rejilla <- 2
 #' semilla <- 123
-#' viralpreds(target, pliegues, repeticiones, rejilla, semilla, traindata)
+#' viraltab(traindata, semilla, target, viralvars, logbase, pliegues, 
+#' repeticiones, rejilla, rank_output = FALSE) %>% 
+#' viralpreds(semilla, traindata, prediction_type = "full")
 #' }
-viralpreds <- function(target, pliegues, repeticiones, rejilla, semilla, data, prediction_type = "full") {
+viralpreds <- function(output, semilla, data, prediction_type = "full"){
   set.seed(semilla)
-  
-  # Define the workflow set with preprocessing and models
-  workflow_set <- workflowsets::workflow_set(
-    preproc = list(
-      simple = workflows::workflow_variables(outcomes = tidyselect::all_of(target), predictors = tidyselect::everything()), 
-      normalized = recipes::step_normalize(recipes::recipe(stats::as.formula(paste(target, "~ .")), data = data), recipes::all_predictors()), 
-      full_quad = recipes::step_interact(recipes::step_poly(recipes::step_normalize(recipes::recipe(stats::as.formula(paste(target, "~ .")), data = data), recipes::all_predictors()), recipes::all_predictors()), ~all_predictors():all_predictors())
-    ), 
-    models = list(
-      MARS = parsnip::set_mode(parsnip::set_engine(parsnip::mars(prod_degree = parsnip::tune(), num_terms = parsnip::tune(), prune_method = parsnip::tune()), "earth"), "regression"),
-      neural_network = parsnip::set_mode(parsnip::set_engine(parsnip::mlp(hidden_units = parsnip::tune(), penalty = parsnip::tune(), epochs = parsnip::tune()), "nnet", MaxNWts = 2600), "regression"), 
-      KNN = parsnip::set_mode(parsnip::set_engine(parsnip::nearest_neighbor(neighbors = parsnip::tune(), dist_power = parsnip::tune(), weight_func = parsnip::tune()), "kknn"), "regression")
-    )
-  )
-  
-  # Perform workflow mapping for cross-validation
-  workflow_results <- workflowsets::workflow_map(
-    workflow_set,
-    seed = semilla,
-    resamples = rsample::vfold_cv(rsample::training(rsample::initial_split(data)), v = pliegues, repeats = repeticiones),
-    grid = rejilla,
-    control = tune::control_grid(save_pred = TRUE, parallel_over = "everything", save_workflow = TRUE)
-  )
-  
   # Select the best workflow based on RMSE
-  best_workflow <- workflow_results %>%
+  best_workflow <- output %>%
     dplyr::mutate(rmse = purrr::map_dbl(result, ~ .x %>%
                                           tune::show_best(metric = "rmse") %>%
                                           dplyr::slice(1) %>%
                                           dplyr::pull(mean))) %>%
     dplyr::slice_min(rmse, with_ties = FALSE) %>%
     dplyr::pull(wflow_id)
-  
+    
+    # magrittr::`%>%`(magrittr::`%>%`(magrittr::`%>%`(output,
+    #                                                                dplyr::mutate(rmse = purrr::map_dbl(result,
+    #                                                                                                    magrittr::`%>%`(
+    #                                                                                                      magrittr::`%>%`(
+    #                                                                                                        magrittr::`%>%`(~ .x, tune::show_best(metric = "rmse")),
+    #                                                                                                        dplyr::slice(1)),
+    #                                                                                                      dplyr::pull(mean))
+    #                                                                ))),
+    #                                                dplyr::slice_min(rmse, with_ties = FALSE)),
+    #                                dplyr::pull(wflow_id)) 
+  # best_workflow <- 
+  #   magrittr::`%>%`(
+  #     magrittr::`%>%`(
+  #       magrittr::`%>%`(output,
+  #                       dplyr::mutate(
+  #                         rmse = purrr::map_dbl(
+  #                           magrittr::`%>%`(
+  #                             magrittr::`%>%`(
+  #                               magrittr::`%>%`(
+  #                                 result, ~ .x,tune::show_best(metric = "rmse")),
+  #                               dplyr::slice(1)),
+  #                             dplyr::pull(mean))
+  #                           )
+  #                         )
+  #                       ),
+  #       dplyr::slice_min(rmse, with_ties = FALSE)
+  #       ), 
+  #     dplyr::pull(wflow_id))
+  # 
   # Get the metrics of the best workflow
-  best_metrics <- workflow_results %>%
+  best_metrics <- output %>%
     dplyr::mutate(metrics = purrr::map(result, ~ .x %>%
                                          tune::show_best(metric = c("rmse")))) %>%
     dplyr::filter(wflow_id == best_workflow) %>%
     dplyr::pull(metrics)
-  
+     
+  # best_metrics <-
+  #   magrittr::`%>%`(
+  #     magrittr::`%>%`(
+  #       magrittr::`%>%`(
+  #         output,
+  #         dplyr::mutate(
+  #           metrics = purrr::map(
+  #             magrittr::`%>%`(
+  #               result, ~ .x,
+  #               tune::show_best(metric = c("rmse")))))),
+  #       dplyr::filter(wflow_id == best_workflow)),
+  #     dplyr::pull(metrics))
+
   # Extract the best model
-  best_model <- tune::select_best(
-    workflowsets::extract_workflow_set_result(workflow_results, id = best_workflow),
-    metric = "rmse"
-  )
+  best_model <-
+    tune::select_best(
+      workflowsets::extract_workflow_set_result(
+        output,
+        id = best_workflow),
+      metric = "rmse")
   
   # Finalize the workflow with the best model
-  final_workflow <- tune::finalize_workflow(
-    workflowsets::extract_workflow(workflow_set, id = best_workflow),
-    best_model
-  )
+  final_workflow <- 
+    tune::finalize_workflow(
+      workflowsets::extract_workflow(
+        output, 
+        id = best_workflow),
+      best_model)
   
   # Conditional prediction based on `prediction_type`
   if (prediction_type == "full") {
@@ -126,7 +149,6 @@ viralpreds <- function(target, pliegues, repeticiones, rejilla, semilla, data, p
       # Increment the divisor m
       m <- m + 1
     }
-    
     # Loop through the dataset, taking two rows at a time
     for (i in 0:floor(n/m)) {
       # Fit the model on the current pair of rows

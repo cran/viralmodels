@@ -44,8 +44,8 @@ counts
 }
 \examples{
 \donttest{
-library(tidyverse)
 library(dplyr)
+library(magrittr)
 library(baguette)
 library(kernlab)
 library(kknn)

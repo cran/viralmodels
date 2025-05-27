@@ -1,6 +1,6 @@
-test_that("`viralmodel()` works", {
-  
-  library(tidyverse)
+test_that("viraltab() works", {
+  library(dplyr)
+  library(magrittr)
   library(baguette)
   library(kernlab)
   library(kknn)
@@ -8,8 +8,8 @@ test_that("`viralmodel()` works", {
   library(rules)
   library(glmnet)
   # Define the function to impute values in the undetectable range
-  set.seed(123)
   impute_undetectable <- function(column) {
+    set.seed(123)
     ifelse(column <= 40,
            rexp(sum(column <= 40), rate = 1/13) + 1,
            column)
@@ -29,6 +29,7 @@ test_that("`viralmodel()` works", {
   rejilla <- 1
   modelo <- "simple_rf"
   set.seed(123)
-  expect_snapshot(print(viralmodel(traindata, semilla, target, viralvars, logbase, pliegues, repeticiones, rejilla, modelo)))
+  expect_snapshot(viraltab(traindata, semilla, target, viralvars, logbase, 
+                           pliegues, repeticiones, rejilla, rank_output = FALSE) %>% 
+                    viralmodel(modelo))
 })
-
